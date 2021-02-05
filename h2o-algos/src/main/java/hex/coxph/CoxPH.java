@@ -56,6 +56,7 @@ public class CoxPH extends ModelBuilder<CoxPHModel,CoxPHModel.CoxPHParameters,Co
     }
 
     System.out.println("_parms = " + _parms.train());
+    System.out.println("_parms.names() = " + Arrays.toString(_parms.train().names()));
     
     if (_parms._train != null && _parms.train() != null) {
       if (_parms._start_column != null) {
@@ -571,8 +572,6 @@ public class CoxPH extends ModelBuilder<CoxPHModel,CoxPHModel.CoxPHParameters,Co
         final double[] time = CollectTimes.collect(_parms.stopVec(), _parms._single_node_mode);
 
         _job.update(0, "Initializing model training");
-        
-        
         
         IcedHashMap<AstGroup.G, IcedInt> strataMap = new IcedHashMap<>();
         Frame f = reorderTrainFrameColumns(strataMap, time);

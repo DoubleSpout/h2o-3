@@ -21,115 +21,115 @@ import static water.TestUtil.parse_test_file;
 @CloudSize(1)
 public class CoxPHTest extends Iced<CoxPHTest> {
 
-  @Test
-  public void testCoxPHEfron1Var() {
-    try {
-      Scope.enter();
-      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
-
-      final CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
-      parms._calc_cumhaz = true;
-      parms._train           = fr._key;
-      parms._start_column    = "start";
-      parms._stop_column     = "stop";
-      parms._response_column = "event";
-      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
-      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.efron;
-      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
-
-      final CoxPH builder = new CoxPH(parms);
-      final CoxPHModel model = builder.trainModel().get();
-      Scope.track_generic(model);
-
-      assertEquals(model._output._coef[0],        0.0307077486571334,   1e-8);
-      assertEquals(model._output._var_coef[0][0], 0.000203471477951459, 1e-8);
-      assertEquals(model._output._null_loglik,    -298.121355672984,    1e-8);
-      assertEquals(model._output._loglik,         -295.536762216228,    1e-8);
-      assertEquals(model._output._score_test,     4.64097294749287,     1e-8);
-      assertTrue(model._output._iter >= 1);
-      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
-      assertEquals(model._output._n,              172);
-      assertEquals(model._output._total_event,    75);
-      assertEquals(model._output._wald_test,      4.6343882547245,      1e-8);
-      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
-
-      final ModelMetricsRegressionCoxPH mm = (ModelMetricsRegressionCoxPH) model._output._training_metrics;
-      assertEquals(0.5806350696073831, mm.concordance(), 0.00001d);
-      assertEquals(2676, mm.discordant());
-      assertEquals(10, mm.tiedY());
-      
-    } finally {
-      Scope.exit();
-    }
-  }
-
-  @Test
-  public void testCoxPHEfron1VarScoring() {
-    try {
-      Scope.enter();
-      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
-
-      CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
-      parms._calc_cumhaz = true;
-      parms._train           = fr._key;
-      parms._start_column    = "start";
-      parms._stop_column     = "stop";
-      parms._response_column = "event";
-      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
-      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.efron;
-      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
-
-      final CoxPH builder = new CoxPH(parms);
-      final CoxPHModel model = (CoxPHModel) Scope.track_generic(builder.trainModel().get());
-
-      assertNotNull(model);
-      final Frame linearPredictors = Scope.track(model.score(fr));
-      assertEquals(fr.numRows(), linearPredictors.numRows());
-
-      final ModelMetricsRegressionCoxPH mm = (ModelMetricsRegressionCoxPH) model._output._training_metrics;
-      assertEquals(0.5806350696073831, mm.concordance(), 0.00001d);
-      assertEquals(2676, mm.discordant());
-      assertEquals(10, mm.tiedY());
-    } finally {
-      Scope.exit();
-    }
-  }
-
-  @Test
-  public void testCoxPHBreslow1Var()  {
-    try {
-      Scope.enter();
-      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
-
-      final CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
-      parms._calc_cumhaz = true;
-      parms._train           = fr._key;
-      parms._start_column    = "start";
-      parms._stop_column     = "stop";
-      parms._response_column = "event";
-      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
-      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.breslow;
-      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
-
-      final CoxPH builder = new CoxPH(parms);
-      final CoxPHModel model = builder.trainModel().get();
-      Scope.track_generic(model);
-
-      assertEquals(model._output._coef[0],        0.0306910411003801,   1e-8);
-      assertEquals(model._output._var_coef[0][0], 0.000203592486905101, 1e-8);
-      assertEquals(model._output._null_loglik,    -298.325606736463,    1e-8);
-      assertEquals(model._output._loglik,         -295.745227177782,    1e-8);
-      assertEquals(model._output._score_test,     4.63317821557301,     1e-8);
-      assertTrue(model._output._iter >= 1);
-      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
-      assertEquals(model._output._n,              172);
-      assertEquals(model._output._total_event,    75);
-      assertEquals(model._output._wald_test,      4.62659510743282,     1e-8);
-      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
-    } finally {
-      Scope.exit();
-    }
-  }
+//  @Test
+//  public void testCoxPHEfron1Var() {
+//    try {
+//      Scope.enter();
+//      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
+//
+//      final CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
+//      parms._calc_cumhaz = true;
+//      parms._train           = fr._key;
+//      parms._start_column    = "start";
+//      parms._stop_column     = "stop";
+//      parms._response_column = "event";
+//      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
+//      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.efron;
+//      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
+//
+//      final CoxPH builder = new CoxPH(parms);
+//      final CoxPHModel model = builder.trainModel().get();
+//      Scope.track_generic(model);
+//
+//      assertEquals(model._output._coef[0],        0.0307077486571334,   1e-8);
+//      assertEquals(model._output._var_coef[0][0], 0.000203471477951459, 1e-8);
+//      assertEquals(model._output._null_loglik,    -298.121355672984,    1e-8);
+//      assertEquals(model._output._loglik,         -295.536762216228,    1e-8);
+//      assertEquals(model._output._score_test,     4.64097294749287,     1e-8);
+//      assertTrue(model._output._iter >= 1);
+//      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
+//      assertEquals(model._output._n,              172);
+//      assertEquals(model._output._total_event,    75);
+//      assertEquals(model._output._wald_test,      4.6343882547245,      1e-8);
+//      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
+//
+//      final ModelMetricsRegressionCoxPH mm = (ModelMetricsRegressionCoxPH) model._output._training_metrics;
+//      assertEquals(0.5806350696073831, mm.concordance(), 0.00001d);
+//      assertEquals(2676, mm.discordant());
+//      assertEquals(10, mm.tiedY());
+//      
+//    } finally {
+//      Scope.exit();
+//    }
+//  }
+//
+//  @Test
+//  public void testCoxPHEfron1VarScoring() {
+//    try {
+//      Scope.enter();
+//      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
+//
+//      CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
+//      parms._calc_cumhaz = true;
+//      parms._train           = fr._key;
+//      parms._start_column    = "start";
+//      parms._stop_column     = "stop";
+//      parms._response_column = "event";
+//      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
+//      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.efron;
+//      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
+//
+//      final CoxPH builder = new CoxPH(parms);
+//      final CoxPHModel model = (CoxPHModel) Scope.track_generic(builder.trainModel().get());
+//
+//      assertNotNull(model);
+//      final Frame linearPredictors = Scope.track(model.score(fr));
+//      assertEquals(fr.numRows(), linearPredictors.numRows());
+//
+//      final ModelMetricsRegressionCoxPH mm = (ModelMetricsRegressionCoxPH) model._output._training_metrics;
+//      assertEquals(0.5806350696073831, mm.concordance(), 0.00001d);
+//      assertEquals(2676, mm.discordant());
+//      assertEquals(10, mm.tiedY());
+//    } finally {
+//      Scope.exit();
+//    }
+//  }
+//
+//  @Test
+//  public void testCoxPHBreslow1Var()  {
+//    try {
+//      Scope.enter();
+//      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
+//
+//      final CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
+//      parms._calc_cumhaz = true;
+//      parms._train           = fr._key;
+//      parms._start_column    = "start";
+//      parms._stop_column     = "stop";
+//      parms._response_column = "event";
+//      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
+//      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.breslow;
+//      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
+//
+//      final CoxPH builder = new CoxPH(parms);
+//      final CoxPHModel model = builder.trainModel().get();
+//      Scope.track_generic(model);
+//
+//      assertEquals(model._output._coef[0],        0.0306910411003801,   1e-8);
+//      assertEquals(model._output._var_coef[0][0], 0.000203592486905101, 1e-8);
+//      assertEquals(model._output._null_loglik,    -298.325606736463,    1e-8);
+//      assertEquals(model._output._loglik,         -295.745227177782,    1e-8);
+//      assertEquals(model._output._score_test,     4.63317821557301,     1e-8);
+//      assertTrue(model._output._iter >= 1);
+//      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
+//      assertEquals(model._output._n,              172);
+//      assertEquals(model._output._total_event,    75);
+//      assertEquals(model._output._wald_test,      4.62659510743282,     1e-8);
+//      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
+//    } finally {
+//      Scope.exit();
+//    }
+//  }
 
   @Test
   public void testCoxPHEfron1VarNoStart() {
@@ -166,42 +166,42 @@ public class CoxPHTest extends Iced<CoxPHTest> {
       Scope.exit();
     }
   }
-
-  @Test
-  public void testCoxPHBreslow1VarNoStart() {
-    try {
-      Scope.enter();
-      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
-
-      final CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
-      parms._calc_cumhaz = true;
-      parms._train           = fr._key;
-      parms._start_column    = null;
-      parms._stop_column     = "stop";
-      parms._response_column = "event";
-      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant", "start"};
-      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.breslow;
-      assertEquals("Surv(stop, event) ~ age", parms.toFormula(fr));
-
-      final CoxPH builder = new CoxPH(parms);
-      final CoxPHModel model = builder.trainModel().get();
-      Scope.track_generic(model);
-
-      assertEquals(model._output._coef[0],        0.0289484855901731,   1e-8);
-      assertEquals(model._output._var_coef[0][0], 0.000211028794751156, 1e-8);
-      assertEquals(model._output._null_loglik,    -314.296493366900,    1e-8);
-      assertEquals(model._output._loglik,         -312.095342077591,    1e-8);
-      assertEquals(model._output._score_test,     3.97665282498882,     1e-8);
-      assertTrue(model._output._iter >= 1);
-      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
-      assertEquals(model._output._n,              172);
-      assertEquals(model._output._total_event,    75);
-      assertEquals(model._output._wald_test,      3.97109228128153,     1e-8);
-      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
-    } finally {
-      Scope.exit();
-    }
-  }
+//
+//  @Test
+//  public void testCoxPHBreslow1VarNoStart() {
+//    try {
+//      Scope.enter();
+//      final Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
+//
+//      final CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
+//      parms._calc_cumhaz = true;
+//      parms._train           = fr._key;
+//      parms._start_column    = null;
+//      parms._stop_column     = "stop";
+//      parms._response_column = "event";
+//      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant", "start"};
+//      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.breslow;
+//      assertEquals("Surv(stop, event) ~ age", parms.toFormula(fr));
+//
+//      final CoxPH builder = new CoxPH(parms);
+//      final CoxPHModel model = builder.trainModel().get();
+//      Scope.track_generic(model);
+//
+//      assertEquals(model._output._coef[0],        0.0289484855901731,   1e-8);
+//      assertEquals(model._output._var_coef[0][0], 0.000211028794751156, 1e-8);
+//      assertEquals(model._output._null_loglik,    -314.296493366900,    1e-8);
+//      assertEquals(model._output._loglik,         -312.095342077591,    1e-8);
+//      assertEquals(model._output._score_test,     3.97665282498882,     1e-8);
+//      assertTrue(model._output._iter >= 1);
+//      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
+//      assertEquals(model._output._n,              172);
+//      assertEquals(model._output._total_event,    75);
+//      assertEquals(model._output._wald_test,      3.97109228128153,     1e-8);
+//      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
+//    } finally {
+//      Scope.exit();
+//    }
+//  }
 
   @Test
   public void testCoxPHEfron1Interaction() {
@@ -262,54 +262,54 @@ public class CoxPHTest extends Iced<CoxPHTest> {
     }
   }
 
-  @Test
-  public void testCoxPHSingleNodeMode() {
-    Key<Frame> rebalancedKey = Key.make();
-    try {
-      Scope.enter();
-      Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
-      fr = Scope.track(rebalanceToAllNodes(fr, rebalancedKey));
-
-      CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
-      parms._auto_rebalance  = false; // make sure we keep the original frame layout
-      parms._calc_cumhaz     = true;
-      parms._train           = fr._key;
-      parms._start_column    = "start";
-      parms._stop_column     = "stop";
-      parms._response_column = "event";
-      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
-      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.efron;
-      
-      // Concordance computation can't support single node so it's disabled for this test
-      System.setProperty("sys.ai.h2o.debug.skipScoring", Boolean.TRUE.toString());
-      System.setProperty("sys.ai.h2o.debug.checkRunLocal", Boolean.TRUE.toString());
-
-      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
-
-      parms._single_node_mode = true;
-      CoxPH builder = new CoxPH(parms);
-      CoxPHModel model = builder
-              .trainModel()
-              .get();
-      Scope.track_generic(model);
-
-      assertEquals(model._output._coef[0],        0.0307077486571334,   1e-8);
-      assertEquals(model._output._var_coef[0][0], 0.000203471477951459, 1e-8);
-      assertEquals(model._output._null_loglik,    -298.121355672984,    1e-8);
-      assertEquals(model._output._loglik,         -295.536762216228,    1e-8);
-      assertEquals(model._output._score_test,     4.64097294749287,     1e-8);
-      assertTrue(model._output._iter >= 1);
-      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
-      assertEquals(model._output._n,              172);
-      assertEquals(model._output._total_event,    75);
-      assertEquals(model._output._wald_test,      4.6343882547245,      1e-8);
-      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
-    } finally {
-      System.setProperty("sys.ai.h2o.debug.skipScoring", Boolean.FALSE.toString());
-      System.setProperty("sys.ai.h2o.debug.checkRunLocal", Boolean.FALSE.toString());
-      Scope.exit();
-    }
-  }
+//  @Test
+//  public void testCoxPHSingleNodeMode() {
+//    Key<Frame> rebalancedKey = Key.make();
+//    try {
+//      Scope.enter();
+//      Frame fr = parse_and_track_test_file("smalldata/coxph_test/heart.csv");
+//      fr = Scope.track(rebalanceToAllNodes(fr, rebalancedKey));
+//
+//      CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
+//      parms._auto_rebalance  = false; // make sure we keep the original frame layout
+//      parms._calc_cumhaz     = true;
+//      parms._train           = fr._key;
+//      parms._start_column    = "start";
+//      parms._stop_column     = "stop";
+//      parms._response_column = "event";
+//      parms._ignored_columns = new String[]{"id", "year", "surgery", "transplant"};
+//      parms._ties = CoxPHModel.CoxPHParameters.CoxPHTies.efron;
+//      
+//      // Concordance computation can't support single node so it's disabled for this test
+//      System.setProperty("sys.ai.h2o.debug.skipScoring", Boolean.TRUE.toString());
+//      System.setProperty("sys.ai.h2o.debug.checkRunLocal", Boolean.TRUE.toString());
+//
+//      assertEquals("Surv(start, stop, event) ~ age", parms.toFormula(fr));
+//
+//      parms._single_node_mode = true;
+//      CoxPH builder = new CoxPH(parms);
+//      CoxPHModel model = builder
+//              .trainModel()
+//              .get();
+//      Scope.track_generic(model);
+//
+//      assertEquals(model._output._coef[0],        0.0307077486571334,   1e-8);
+//      assertEquals(model._output._var_coef[0][0], 0.000203471477951459, 1e-8);
+//      assertEquals(model._output._null_loglik,    -298.121355672984,    1e-8);
+//      assertEquals(model._output._loglik,         -295.536762216228,    1e-8);
+//      assertEquals(model._output._score_test,     4.64097294749287,     1e-8);
+//      assertTrue(model._output._iter >= 1);
+//      assertEquals(model._output._x_mean_num[0][0],  -2.48402655078554,    1e-8);
+//      assertEquals(model._output._n,              172);
+//      assertEquals(model._output._total_event,    75);
+//      assertEquals(model._output._wald_test,      4.6343882547245,      1e-8);
+//      assertEquals(model._output._var_cumhaz_2_matrix.rows(), 110);
+//    } finally {
+//      System.setProperty("sys.ai.h2o.debug.skipScoring", Boolean.FALSE.toString());
+//      System.setProperty("sys.ai.h2o.debug.checkRunLocal", Boolean.FALSE.toString());
+//      Scope.exit();
+//    }
+//  }
 
   private static Frame rebalanceToAllNodes(Frame fr, Key<Frame> rebalancedKey) {
     // this is essentially a complicated way of setting nChunks = H2O.getCloudSize()
@@ -341,30 +341,30 @@ public class CoxPHTest extends Iced<CoxPHTest> {
     assertEquals(H2O.getCloudSize(), nodes.size());
     return fr;
   }
-
-  @Test
-  public void testJavaScoringNumeric() {
-    try {
-      Scope.enter();
-      Frame fr = Scope.track(parse_test_file("smalldata/coxph_test/heart.csv"));
-      testJavaScoring(fr);
-    } finally {
-      Scope.exit();
-    }
-  }
-
-  @Test
-  public void testJavaScoringCategorical() {
-    try {
-      Scope.enter();
-      Frame fr = Scope.track(parse_test_file("smalldata/coxph_test/heart.csv"))
-              .toCategoricalCol("surgery")
-              .toCategoricalCol("transplant");
-      testJavaScoring(fr);
-    } finally {
-      Scope.exit();
-    }
-  }
+//
+//  @Test
+//  public void testJavaScoringNumeric() {
+//    try {
+//      Scope.enter();
+//      Frame fr = Scope.track(parse_test_file("smalldata/coxph_test/heart.csv"));
+//      testJavaScoring(fr);
+//    } finally {
+//      Scope.exit();
+//    }
+//  }
+//
+//  @Test
+//  public void testJavaScoringCategorical() {
+//    try {
+//      Scope.enter();
+//      Frame fr = Scope.track(parse_test_file("smalldata/coxph_test/heart.csv"))
+//              .toCategoricalCol("surgery")
+//              .toCategoricalCol("transplant");
+//      testJavaScoring(fr);
+//    } finally {
+//      Scope.exit();
+//    }
+//  }
 
   private void testJavaScoring(Frame fr) {
     CoxPHModel.CoxPHParameters parms = new CoxPHModel.CoxPHParameters();
