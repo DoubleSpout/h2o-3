@@ -9,6 +9,7 @@ import water.fvec.*;
 import water.runner.CloudSize;
 import water.runner.H2ORunner;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -241,7 +242,7 @@ public class CoxPHTest extends Iced<CoxPHTest> {
       assertEquals("Surv(start, stop, event) ~ age1:age2", parms.toFormula(fr));
 
       CoxPH builder = new CoxPH(parms);
-      System.out.println("fr.names() = " + fr.names());
+      System.out.println("fr.names() = " + Arrays.toString(fr.names()));
       CoxPHModel model = (CoxPHModel) Scope.track_generic(builder.trainModel().get());
       System.out.println("model = " + model);
 
