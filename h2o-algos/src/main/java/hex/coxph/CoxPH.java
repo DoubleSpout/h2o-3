@@ -55,6 +55,8 @@ public class CoxPH extends ModelBuilder<CoxPHModel,CoxPHModel.CoxPHParameters,Co
       error("train", "Invalid training frame (Frame key = " + _parms._train + " not found)");
     }
 
+    System.out.println("_parms = " + _parms.train());
+    
     if (_parms._train != null && _parms.train() != null) {
       if (_parms._start_column != null) {
         Vec startVec  = _parms.startVec();
