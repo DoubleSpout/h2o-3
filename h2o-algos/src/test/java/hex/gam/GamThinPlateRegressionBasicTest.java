@@ -78,7 +78,7 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
       params._scale = new double[]{10, 10, 10};
       params._train = train._key;
       params._savePenaltyMat = true;
-      params._lambda_search = true;
+      params._lambda_search = false;
       GAMModel gam = new GAM(params).trainModel().get();
       // check starT is of size k x M
       assertTrue((gam._output._starT[0].length == k) && (gam._output._starT[0][0].length == params._M[0]));
@@ -111,7 +111,6 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
       params._train = train._key;
       params._savePenaltyMat = true;
       params._lambda = new double[]{0.01};
-      //params._lambda_search = true;
       GAMModel gam = new GAM(params).trainModel().get();
       Scope.track_generic(gam);
       // check starT is of size k x M
@@ -145,7 +144,6 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
       params._scale = new double[]{10, 10, 10};
       params._train = train._key;
       params._savePenaltyMat = true;
-      params._lambda_search = true;
       GAMModel gam = new GAM(params).trainModel().get();
       Scope.track_generic(gam);
       // check starT is of size k x M
@@ -155,7 +153,7 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
               (gam._output._penaltyMatCS[0][0].length == (k - params._M[0])));
       // check and make sure polynomials are generated correctly by checking starT
       for (int gamInd = 0; gamInd < gamCols.length; gamInd++) {
-        assertCorrectStarT(gam._output._starT[gamInd], gam._output._knots[gamInd], gamCols[gamInd]);
+        assertCorrectStarT(gam._output, gamInd, gamCols[gamInd]);
       }
     } finally {
       Scope.exit();
@@ -163,7 +161,9 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
   }
   
   // check correct starT generation for one tp smoother
-  public static void assertCorrectStarT(double[][] starT, double[][] knots, String[] gam_columns) {
+  public static void assertCorrectStarT(GAMModelOutput output, int gamInd, String[] gam_columns) {
+    double[][] starT = output._starT[gamInd];
+    double[][] knots = output._knots[gamInd];
     int d = gam_columns.length;
     int m = calculatem(d);
     int M = calculateM(d, m);
@@ -173,17 +173,18 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
     double[][] starTManual = new double[numKnots][M];
     for (int rowIndex = 0; rowIndex < numKnots; rowIndex++) {
       for (int colIndex = 0; colIndex < M; colIndex++) {
-        starTManual[rowIndex][colIndex] = generate1PolyRow(knots, allPolyBasis[colIndex], rowIndex);
+        starTManual[rowIndex][colIndex] = generate1PolyRow(knots, allPolyBasis[colIndex], rowIndex, output, gamInd);
       }
     }
     checkDoubleArrays(starT, starTManual, MAGEPS);
   }
   
-  public static double generate1PolyRow(double[][] knots, int[] onePolyBasis, int rowIndex) {
+  public static double generate1PolyRow(double[][] knots, int[] onePolyBasis, int rowIndex, GAMModelOutput output, int gamInd) {
     double temp = 1;
     int d = onePolyBasis.length;
     for (int predInd = 0; predInd < d; predInd++) {
-      temp *= Math.pow(knots[predInd][rowIndex], onePolyBasis[predInd]);
+      temp *= Math.pow((knots[predInd][rowIndex]-output._gamColMeansRaw[gamInd][predInd])*
+              output._oneOGamColStd[gamInd][predInd], onePolyBasis[predInd]);
     }
     return temp;
   }

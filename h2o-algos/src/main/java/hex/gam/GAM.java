@@ -680,8 +680,7 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
           scoreGenModelMetrics(model, valid(), false); // score validation dataset and generate model metrics
         }
       } catch(Gram.NonSPDMatrixException exception) {
-        throw new Gram.NonSPDMatrixException("Consider reducing num knots for your thin plate regression smoothers" +
-                ", enable lambda_search, \n or decrease scale parameter or not use thin plate regression " +
+        throw new Gram.NonSPDMatrixException("Consider enable lambda_search, \n or not use thin plate regression " +
                 "smoothers at all.");
       } finally {
         try {
