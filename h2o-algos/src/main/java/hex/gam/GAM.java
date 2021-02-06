@@ -475,7 +475,7 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
         System.arraycopy(rawColMeans, 0, _gamColMeansRaw[_thinPlateGamColIndex], 0, rawColMeans.length);
         System.arraycopy(oneOverColStd, 0, _oneOGamColStd[_thinPlateGamColIndex], 0, oneOverColStd.length);
         ThinPlateDistanceWithKnots distanceMeasure = 
-                new ThinPlateDistanceWithKnots(_knots, _numPred, oneOverColStd).doAll(_numKnots, Vec.T_NUM, _predictVec); // Xnmd in 3.1
+                new ThinPlateDistanceWithKnots(_knots, _numPred, oneOverColStd, _parms._standardize).doAll(_numKnots, Vec.T_NUM, _predictVec); // Xnmd in 3.1
         List<Integer[]> polyBasisDegree = findPolyBasis(_numPred, calculatem(_numPred)); // polynomial basis lists in 3.2
         int[][] polyBasisArray = convertList2Array(polyBasisDegree, _M, _numPred);
         copy2DArray(polyBasisArray, _allPolyBasisList[_thinPlateGamColIndex]);
@@ -493,7 +493,7 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
         double[][] zCST = generateOrthogonalComplement(qmat, starT, _numKnotsMM, _parms._seed);
         copy2DArray(zCST, _zTransposeCS[_thinPlateGamColIndex]);
         ThinPlatePolynomialWithKnots thinPlatePoly = new ThinPlatePolynomialWithKnots(_numPred,
-                polyBasisArray, rawColMeans, oneOverColStd).doAll(_M, Vec.T_NUM, _predictVec); // generate polynomial basis T as in 3.2
+                polyBasisArray, rawColMeans, oneOverColStd, _parms._standardize).doAll(_M, Vec.T_NUM, _predictVec); // generate polynomial basis T as in 3.2
         Frame thinPlatePolyBasis = thinPlatePoly.outputFrame(null, polyNames, null);
         for (int index = 0; index < _M; index++)
           _gamColMeans[_gamColIndex][index+_numKnots] = thinPlatePolyBasis.vec(index).mean();

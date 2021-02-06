@@ -63,6 +63,7 @@ public class GamMojoReader extends ModelMojoReader<GamMojoModelBase> {
     _model._gamColNamesCenter = new String[_model._num_gam_columns][];
     _model._gamPredSize = readkv("_d");
     if (_model._num_TP_col > 0) {
+      _model._standardize = readkv("standardize");
       _model._zTransposeCS = new double[_model._num_TP_col][][];
       _model._num_knots_TP = readkv("num_knots_TP");
       _model._d = readkv("_d");

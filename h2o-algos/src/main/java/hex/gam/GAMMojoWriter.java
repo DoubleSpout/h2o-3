@@ -94,6 +94,7 @@ public class GAMMojoWriter extends ModelMojoWriter<GAMModel, GAMModel.GAMParamet
       writekv("_m", model._parms._m);
       writekv("num_knots_TP", model._parms._num_knots_tp); // an array
       writekv("num_TP_col", model._parms._M.length);
+      writekv("standardize", model._parms._standardize);
     } else {
       writekv("num_TP_col", 0);
     }

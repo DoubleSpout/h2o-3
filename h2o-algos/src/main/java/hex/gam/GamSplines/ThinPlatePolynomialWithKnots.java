@@ -15,14 +15,16 @@ public class ThinPlatePolynomialWithKnots extends MRTask<ThinPlatePolynomialWith
   final int _d; // number of predictors used
   final double[] _gamColMeanRaw;
   final double[] _oneOverColStd;
+  final boolean _standardize;
 
-  public ThinPlatePolynomialWithKnots(int weightID, int[][] polyBasis, double[] gamColMeanRaw, double[] oneOverColStd) {
+  public ThinPlatePolynomialWithKnots(int weightID, int[][] polyBasis, double[] gamColMeanRaw, double[] oneOverColStd, boolean standardize) {
     _weightID = weightID;
     _d = weightID;
     _polyBasisList = polyBasis;
     _M = polyBasis.length;
     _gamColMeanRaw = gamColMeanRaw;
     _oneOverColStd = oneOverColStd;
+    _standardize = standardize;
   }
 
   @Override
@@ -36,7 +38,7 @@ public class ThinPlatePolynomialWithKnots extends MRTask<ThinPlatePolynomialWith
           fillRowOneValue(newGamCols, _M, Double.NaN);
         } else {
           extractNDemeanOneRowFromChunk(chk, rowIndex, oneDataRow, _d); // extract data to oneDataRow
-          calculatePolynomialBasis(onePolyRow, oneDataRow, _d, _M, _polyBasisList, _gamColMeanRaw, _oneOverColStd);
+          calculatePolynomialBasis(onePolyRow, oneDataRow, _d, _M, _polyBasisList, _gamColMeanRaw, _oneOverColStd, _standardize);
           fillRowArray(newGamCols, _M, onePolyRow);
         }
       } else {  // set the row to zero

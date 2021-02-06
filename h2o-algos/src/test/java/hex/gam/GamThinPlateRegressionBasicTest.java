@@ -38,8 +38,9 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
             {1.0, 1.0, 1.01}, {1.0, 1.98, 1.99}};
     Matrix starTMat = new Matrix(matT);        // generate Zcs as in 3.3
     QRDecomposition starTMat_qr = new QRDecomposition(starTMat);
+    double[][] qMat = starTMat_qr.getQ().getArray();
     double[][] qMatT = ArrayUtils.transpose(starTMat_qr.getQ().getArray()); // contains orthogonal basis transpose
-    double[][] zCST = generateOrthogonalComplement(qMatT, matT, 3, 12345);
+    double[][] zCST = generateOrthogonalComplement(qMat, matT, 3, 12345);
     // check zCS: zCS should be orthogonal to qMat and to each other.  They also should have unit magnitude.
     int numQ = qMatT.length;
     int numZ = zCST.length;
@@ -189,7 +190,7 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
     return temp;
   }
 
-  // test with various data transform (standardize, demean) with CS and TP smoothers
+  // test with GAM model building with CS and TP smoothers, predictors participating in multiple smoother
   @Test
   public void testDataTransform() {
     Scope.enter();
@@ -197,18 +198,16 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
       Frame train = Scope.track(parse_test_file("smalldata/glm_test/gaussian_20cols_10000Rows.csv"));
       String[] ignoredCols = new String[]{"C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12",
               "C13", "C14", "C15", "C16", "C17", "C18", "C19", "C20"};
-      String[][] gamCols = new String[][]{{"C11", "C12"}, {"C13", "C14", "C15"}, {"C16"}, {"C17"}};
+      String[][] gamCols = new String[][]{{"C13", "C14", "C16"}, {"C11", "C17"}, {"C16"}, {"C17"}};
       GAMParameters params = new GAMParameters();
       params._response_column = "C21";
       params._ignored_columns = ignoredCols;
-      params._num_knots = new int[]{5, 11, 4, 10};
+      params._num_knots = new int[]{11, 5, 4, 10};
       params._gam_columns = gamCols;
       params._bs = new int[]{1, 1, 1, 0};
       params._scale = new double[]{10, 10, 10, 10};
       params._train = train._key;
       params._savePenaltyMat = true;
-      params._lambda_search = true;
-      //params._standardize = true;
       GAMModel gamStandardize = new GAM(params).trainModel().get();
       Scope.track_generic(gamStandardize);
     } finally {

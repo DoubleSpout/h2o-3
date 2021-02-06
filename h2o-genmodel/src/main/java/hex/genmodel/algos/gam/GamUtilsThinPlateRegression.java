@@ -21,11 +21,12 @@ public class GamUtilsThinPlateRegression {
   }
 
   public static void calculateDistance(double[] rowValues, double[] chk, int knotNum, double[][] knots, int d, int m,
-                                       boolean dEven, double constantTerms, double[] oneOGamColStd) { // see 3.1
+                                       boolean dEven, double constantTerms, double[] oneOGamColStd, boolean standardize) { // see 3.1
     for (int knotInd = 0; knotInd < knotNum; knotInd++) { // calculate distance between data and knots
       double sumSq = 0;
       for (int predInd = 0; predInd < d; predInd++) {
-        double temp = (chk[predInd] - knots[predInd][knotInd])*oneOGamColStd[predInd];  // standardized
+        double temp = standardize?(chk[predInd] - knots[predInd][knotInd])*oneOGamColStd[predInd]:
+                (chk[predInd] - knots[predInd][knotInd]);  // standardized
         sumSq += temp*temp;
       }
       double distance = Math.pow(Math.sqrt(sumSq), 2*m-d);
@@ -36,12 +37,15 @@ public class GamUtilsThinPlateRegression {
   }
 
   public static void calculatePolynomialBasis(double[] onePolyRow, double[] oneDataRow, int d, int M,
-                                              int[][] polyBasisList, double[] gamColMean, double[] oneOGamStd) {
+                                              int[][] polyBasisList, double[] gamColMean, double[] oneOGamStd, 
+                                              boolean standardize) {
     for (int colIndex = 0; colIndex < M; colIndex++) {
       int[] oneBasis = polyBasisList[colIndex];
       double val = 1.0;
       for (int predIndex = 0; predIndex < d; predIndex++) {
-        val *= Math.pow((oneDataRow[predIndex]-gamColMean[predIndex]*oneOGamStd[predIndex]), oneBasis[predIndex]);
+        val *= standardize?
+                Math.pow((oneDataRow[predIndex]-gamColMean[predIndex]*oneOGamStd[predIndex]), oneBasis[predIndex]):
+                Math.pow(oneDataRow[predIndex], oneBasis[predIndex]);
       }
       onePolyRow[colIndex] = val;
     }

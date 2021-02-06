@@ -76,6 +76,7 @@ public abstract class GamMojoModelBase extends MojoModel implements ConverterFac
   double[] _constantTerms;
   double[][] _gamColMeansRaw;
   double[][] _oneOGamColStd;
+  boolean _standardize;
   
   GamMojoModelBase(String[] columns, String[][] domains, String responseColumn) {
     super(columns, domains, responseColumn);
@@ -207,10 +208,11 @@ public abstract class GamMojoModelBase extends MojoModel implements ConverterFac
           continue;
         }
         calculateDistance(_tpDistance[tpCounter], gamPred, _num_knots_sorted[cind], _knots[cind], 
-                _d[tpCounter], _m[tpCounter], _dEven[tpCounter], _constantTerms[tpCounter], _oneOGamColStd[tpCounter]); // calculate distance between row and knots, result in rowValues
+                _d[tpCounter], _m[tpCounter], _dEven[tpCounter], _constantTerms[tpCounter], _oneOGamColStd[tpCounter],
+                _standardize); // calculate distance between row and knots, result in rowValues
         multArray(_tpDistance[tpCounter], _zTransposeCS[tpCounter], _tpDistzCS[tpCounter]); // distance * zCS
         calculatePolynomialBasis(_tpPoly[tpCounter], gamPred, _d[tpCounter], _M[tpCounter], 
-                _allPolyBasisList[tpCounter], _gamColMeansRaw[tpCounter], _oneOGamColStd[tpCounter]);  // generate polynomial basis
+                _allPolyBasisList[tpCounter], _gamColMeansRaw[tpCounter], _oneOGamColStd[tpCounter], _standardize);  // generate polynomial basis
         // concatenate distance zCS and poly basis.
         System.arraycopy(_tpDistzCS[tpCounter], 0, _tpDistzCSPoly[tpCounter], 0, _tpDistzCS[tpCounter].length);
         System.arraycopy(_tpPoly[tpCounter], 0, _tpDistzCSPoly[tpCounter], _tpDistzCS[tpCounter].length, _M[tpCounter]);
