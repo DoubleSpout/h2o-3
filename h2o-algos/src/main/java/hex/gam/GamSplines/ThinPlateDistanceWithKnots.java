@@ -27,9 +27,9 @@ public class ThinPlateDistanceWithKnots extends MRTask<ThinPlateDistanceWithKnot
   final int _weightID;
   final boolean _dEven;
   final double[] _oneOverGamColStd;
-  final boolean _standardize;
+  final boolean _standardizeGAM;
   
-  public ThinPlateDistanceWithKnots(double[][] knots, int d, double[] oneOGamColStd, boolean standardize) {
+  public ThinPlateDistanceWithKnots(double[][] knots, int d, double[] oneOGamColStd, boolean standardizeGAM) {
     _knots = knots;
     _knotNum = _knots[0].length;
     _d = d;
@@ -37,7 +37,7 @@ public class ThinPlateDistanceWithKnots extends MRTask<ThinPlateDistanceWithKnot
     _m = calculatem(_d);
     _weightID = _d; // weight column index
     _oneOverGamColStd = oneOGamColStd;
-    _standardize = standardize;
+    _standardizeGAM = standardizeGAM;
     if (_dEven)
       _constantTerms = Math.pow(-1, _m+1+_d/2.0)/(Math.pow(2, 2*_m-1)*Math.pow(Math.PI, _d/2.0)*factorial(_m-1)*
               factorial(_m-_d/2));
@@ -57,7 +57,7 @@ public class ThinPlateDistanceWithKnots extends MRTask<ThinPlateDistanceWithKnot
         } else {  // calculate distance measure as in 3.1
           fillRowData(chkRowValues, chk, rowIndex, _d);
           calculateDistance(rowValues, chkRowValues, _knotNum, _knots, _d, _m, _dEven, _constantTerms, 
-                  _oneOverGamColStd, _standardize);
+                  _oneOverGamColStd, _standardizeGAM);
           fillRowArray(newGamCols, _knotNum, rowValues);
         }
       } else {  // insert 0 to newChunk for weigth == 0
@@ -97,7 +97,7 @@ public class ThinPlateDistanceWithKnots extends MRTask<ThinPlateDistanceWithKnot
     double[] tempVal = MemoryManager.malloc8d(_knotNum);
     for (int index = 0; index < _knotNum; index++) {
       calculateDistance(tempVal, knotsTranspose[index], _knotNum, _knots, _d, _m, _dEven, _constantTerms, 
-              _oneOverGamColStd, _standardize);
+              _oneOverGamColStd, _standardizeGAM);
       System.arraycopy(tempVal, 0, penaltyMat[index], 0, _knotNum);
     } // penaltyMat is right now hollow with zero off diagonal
 /*    double[][] qmatT = transpose(qmat);

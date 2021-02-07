@@ -117,7 +117,8 @@ public class AddTPKnotsGamColumns {
     @Override
     protected void compute() {
       ThinPlateDistanceWithKnots distanceMeasure =
-              new ThinPlateDistanceWithKnots(_knots, _numPred, _oneOColStd).doAll(_numKnots, Vec.T_NUM, _predictVec); // Xnmd in 3.1
+              new ThinPlateDistanceWithKnots(_knots, _numPred, _oneOColStd, _parms._standardize).doAll(_numKnots, 
+                      Vec.T_NUM, _predictVec); // Xnmd in 3.1
       String colNameStub = genThinPlateNameStart(_parms, _gamColIndex); // gam column names before processing
       String[] gamColNames = generateGamColNamesThinPlateKnots(_gamColIndex, _parms, _polyBasisList, colNameStub);
       String[] distanceColNames = extractColNames(gamColNames, 0, 0, _numKnots);
@@ -127,8 +128,8 @@ public class AddTPKnotsGamColumns {
       thinPlateFrame = ThinPlateDistanceWithKnots.applyTransform(thinPlateFrame, colNameStub
               +"CS_", _parms, _zCST, _numKnotsMM);        // generate Xcs as in 3.3
       ThinPlatePolynomialWithKnots thinPlatePoly = new ThinPlatePolynomialWithKnots(_numPred, _polyBasisList,
-              _gamColMeanRaw, _oneOColStd).doAll(_M,
-              Vec.T_NUM, _predictVec);        // generate polynomial basis T as in 3.2
+              _gamColMeanRaw, _oneOColStd, _parms._standardize).doAll(_M,
+              Vec.T_NUM, _predictVec);     // generate polynomial basis T as in 3.2
       Frame thinPlatePolyBasis = thinPlatePoly.outputFrame(null, polyNames, null);
       thinPlateFrame.add(thinPlatePolyBasis.names(), thinPlatePolyBasis.removeAll());         // concatenate Xcs and T
       thinPlateFrame = ThinPlateDistanceWithKnots.applyTransform(thinPlateFrame, colNameStub+"center_",

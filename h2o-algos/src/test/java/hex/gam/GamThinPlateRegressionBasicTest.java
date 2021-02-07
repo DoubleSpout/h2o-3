@@ -2,10 +2,12 @@ package hex.gam;
 
 import Jama.Matrix;
 import Jama.QRDecomposition;
+import hex.SplitFrame;
 import hex.gam.GamSplines.ThinPlateDistanceWithKnots;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import water.DKV;
+import water.Key;
 import water.Scope;
 import water.TestUtil;
 import water.fvec.Frame;
@@ -17,8 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static hex.gam.GAMModel.GAMParameters;
 import static hex.gam.GAMModel.GAMModelOutput;
+import static hex.gam.GAMModel.GAMParameters;
 import static hex.gam.GamSplines.ThinPlateRegressionUtils.*;
 import static hex.genmodel.algos.gam.GamUtilsThinPlateRegression.calculateDistance;
 import static hex.util.LinearAlgebraUtils.generateOrthogonalComplement;
@@ -189,8 +191,80 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
     }
     return temp;
   }
+  
+  // test and make sure parameter _standardize_TP_gam_cols works
+  @Test
+  public void testStandardizeGAM() {
+    Scope.enter();
+    try {
+      Frame train = Scope.track(parse_test_file("smalldata/glm_test/binomial_20_cols_10KRows.csv"));
+      train.replace((20), train.vec(20).toCategoricalVec()).remove();
+      DKV.put(train);
+      String[] ignoredCols = new String[]{"C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10"};
+      String[][] gamCols = new String[][]{{"C11"},{"C12", "C13"}, {"C11"}, {"C14", "C15", "C16"}};
+      GAMParameters params = new GAMParameters();
+      params._bs = new int[]{1,1,0,1};
+      params._response_column = "C21";
+      params._ignored_columns = ignoredCols;
+      params._gam_columns = gamCols;
+      params._train = train._key;
+      params._savePenaltyMat = true;
+      GAMModel gam = new GAM(params).trainModel().get();  // GAM model without standarization of TP gam columns
+      Scope.track_generic(gam);
+      params._standardize_TP_gam_cols = true;
+      GAMModel gamStandardize = new GAM(params).trainModel().get(); // GAM model with standardization of TP gam column s
+      Scope.track_generic(gamStandardize);
+      // check CS penalty_matrix, they should be the same
+      checkDoubleArrays(gam._output._penaltyMatricesCenter[0], gamStandardize._output._penaltyMatricesCenter[0], MAGEPS);
+      // check TP penalty_matrices are different
+      assertTrue(Math.abs(gam._output._penaltyMatricesCenter[1][0][0] - 
+              gamStandardize._output._penaltyMatricesCenter[1][0][0]) > MAGEPS);
+      assertTrue(Math.abs(gam._output._penaltyMatricesCenter[2][0][0] -
+              gamStandardize._output._penaltyMatricesCenter[2][0][0]) > MAGEPS);
+      assertTrue(Math.abs(gam._output._penaltyMatricesCenter[3][0][0] -
+              gamStandardize._output._penaltyMatricesCenter[3][0][0]) > MAGEPS);
+    } finally {
+      Scope.exit();
+    }
+  }
 
-  // test with GAM model building with CS and TP smoothers, predictors participating in multiple smoother
+  @Test
+  public void testPenaltyMatrixScaling() {
+    Scope.enter();
+    try {
+      Frame train = Scope.track(parse_test_file("smalldata/glm_test/binomial_20_cols_10KRows.csv"));
+      train.replace((20), train.vec(20).toCategoricalVec()).remove();
+      DKV.put(train);
+      String[] ignoredCols = new String[]{"C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10"};
+      String[][] gamCols = new String[][]{{"C11"},{"C12", "C13"}, {"C11"}, {"C14", "C15", "C16"}};
+      GAMParameters params = new GAMParameters();
+      params._bs = new int[]{1,1,0,1};
+      params._response_column = "C21";
+      params._ignored_columns = ignoredCols;
+      params._gam_columns = gamCols;
+      params._train = train._key;
+      params._savePenaltyMat = true;
+      params._standardize_TP_gam_cols = true;
+      GAMModel gam = new GAM(params).trainModel().get();  // GAM model without standarization of TP gam columns
+      Scope.track_generic(gam);
+      params._scale_TP_penalty_mat = true;
+      GAMModel gamScale = new GAM(params).trainModel().get(); // GAM model with standardization of TP gam column s
+      Scope.track_generic(gamScale);
+      // check CS penalty_matrix, they should be the same regardless of TP penalty matrix scaling
+      checkDoubleArrays(gam._output._penaltyMatricesCenter[0], gamScale._output._penaltyMatricesCenter[0], MAGEPS);
+      // check TP penalty_matrices are different by a scaling parameter
+      checkDoubleArrays(gam._output._penaltyMatricesCenter[1], mult(gamScale._output._penaltyMatricesCenter[1], 
+              gamScale._output._penaltyScale[1]), MAGEPS);
+      checkDoubleArrays(gam._output._penaltyMatricesCenter[2], mult(gamScale._output._penaltyMatricesCenter[2],
+              gamScale._output._penaltyScale[2]), MAGEPS);
+      checkDoubleArrays(gam._output._penaltyMatricesCenter[3], mult(gamScale._output._penaltyMatricesCenter[3],
+              gamScale._output._penaltyScale[3]), MAGEPS);
+    } finally {
+      Scope.exit();
+    }
+  }
+  
+  // test with GAM model building with CS and TP smoothers, one predictor participating in multiple smoother
   @Test
   public void testDataTransform() {
     Scope.enter();
@@ -208,8 +282,50 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
       params._scale = new double[]{10, 10, 10, 10};
       params._train = train._key;
       params._savePenaltyMat = true;
+      params._standardize_TP_gam_cols = true;
+      params._standardize = true;
       GAMModel gamStandardize = new GAM(params).trainModel().get();
       Scope.track_generic(gamStandardize);
+      // check CS smoother penalty matrix has correct dimension
+      assertTrue((params._num_knots_sorted[0]-1) == gamStandardize._output._penaltyMatricesCenter[0][0].length);
+      // check TP smoother penalty matrices have correct dimension
+      assertTrue((params._num_knots_sorted[1]-1) == gamStandardize._output._penaltyMatricesCenter[1][0].length); // for smoother {"C13", "C14", "C16"}
+      assertTrue((params._num_knots_sorted[2]-1) == gamStandardize._output._penaltyMatricesCenter[2][0].length); // for smoother {"C11", "C17"}
+      assertTrue((params._num_knots_sorted[3]-1) == gamStandardize._output._penaltyMatricesCenter[3][0].length); // for smoother {"C16"}
+    } finally {
+      Scope.exit();
+    }
+  }
+
+  // test with GAM model building with validation dataset
+  @Test
+  public void testValidationData() {
+    Scope.enter();
+    try {
+      Frame train = Scope.track(parse_test_file("smalldata/glm_test/gaussian_20cols_10000Rows.csv"));
+      SplitFrame sf = new SplitFrame(train, new double[] {0.8, 0.2}, null);
+      sf.exec().get();
+      Key[] splits = sf._destination_frames;
+      Frame trainFrame = Scope.track((Frame) splits[0].get());
+      Frame testFrame = Scope.track((Frame) splits[1].get());
+      String[] ignoredCols = new String[]{"C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12",
+              "C13", "C14", "C15", "C16", "C17", "C18", "C19", "C20"};
+      String[][] gamCols = new String[][]{{"C13", "C14", "C16"}, {"C11", "C17"}, {"C16"}, {"C17"}};
+      GAMParameters params = new GAMParameters();
+      params._response_column = "C21";
+      params._ignored_columns = ignoredCols;
+      params._num_knots = new int[]{11, 5, 4, 10};
+      params._gam_columns = gamCols;
+      params._bs = new int[]{1, 1, 1, 0};
+      params._scale = new double[]{10, 10, 10, 10};
+      params._train = trainFrame._key;
+      params._valid = testFrame._key;
+      params._savePenaltyMat = true;
+      params._standardize_TP_gam_cols = true;
+      params._standardize = true;
+      GAMModel gamStandardize = new GAM(params).trainModel().get();
+      Scope.track_generic(gamStandardize);
+      assertTrue(gamStandardize._output._validation_metrics != null); // check and make sure validation metrics is not null
     } finally {
       Scope.exit();
     }
@@ -316,6 +432,7 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
       params._gam_columns = gamCols;
       params._train = train._key;
       params._savePenaltyMat = true;
+      params._standardize_TP_gam_cols = true;
       GAMModel gam = new GAM(params).trainModel().get();
       Scope.track_generic(gam);
       for (int gamInd = 0; gamInd < gamCols.length; gamInd++)
@@ -409,7 +526,7 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
     int rowNum2Check = (int) Math.floor(data.numRows()*frac2Test);
     int rowInd = Math.round(data.numRows()/rowNum2Check);
     double[][] knots = output._knots[gamIndex];
-    ThinPlateDistanceWithKnots tpDistance = new ThinPlateDistanceWithKnots(knots, d, output._oneOGamColStd[gamIndex]);
+    ThinPlateDistanceWithKnots tpDistance = new ThinPlateDistanceWithKnots(knots, d, output._oneOGamColStd[gamIndex], parms._standardize);
     int[][] allPolyBasis = convertList2Array(findPolyBasis(d, m), M, d);
     double[] dataInput = new double[d]; // store predictor data before gamification
     double[] dataDistance = new double[numKnot];  // store data after generating distance
@@ -422,7 +539,7 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
     for (int rowIndex = 0; rowIndex < data.numRows(); rowIndex = rowIndex+rowInd) {
       grabOneRow(data, dataInput, parms._gam_columns_sorted[gamIndex], rowIndex);
       calculateDistance(dataDistance, dataInput, numKnot, knots, d, m, (d % 2==0), tpDistance._constantTerms, 
-              output._oneOGamColStd[rowIndex]);
+              output._oneOGamColStd[gamIndex], parms._standardize_TP_gam_cols);
       double[] dataDistanceCS = multVecArr(dataDistance, zCS);
       generatePolyOneRow(dataInput, allPolyBasis, dataPoly);
       System.arraycopy(dataDistanceCS, 0, dataDistPlusPoly, 0, numKnotsMinusM);
@@ -469,6 +586,8 @@ public class GamThinPlateRegressionBasicTest extends TestUtil {
       params._gam_columns = gamCols;
       params._train = train._key;
       params._savePenaltyMat = true;
+      params._standardize_TP_gam_cols = true;
+      params._scale_TP_penalty_mat = true;
       GAMModel gam = new GAM(params).trainModel().get();
       Scope.track_generic(gam);
       for (int gamInd = 0; gamInd < gamCols.length; gamInd++)

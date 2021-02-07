@@ -308,7 +308,7 @@ public class GamTestPiping extends TestUtil {
                            String[][] gamCols, String[] ignoredCols, int[] numKnots, int[] bstypes, boolean saveZmat,
                            boolean savePenalty, double[] scale, double[] alpha, double[] lambda, 
                            boolean standardize, String[] knotsKey, Frame valid, boolean computePVal) {
-    GAMModel gam = null;
+    GAMModel gam;
     try {
       Scope.enter();
       train = massageFrame(train, family);

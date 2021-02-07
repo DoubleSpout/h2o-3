@@ -475,7 +475,7 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
         System.arraycopy(rawColMeans, 0, _gamColMeansRaw[_thinPlateGamColIndex], 0, rawColMeans.length);
         System.arraycopy(oneOverColStd, 0, _oneOGamColStd[_thinPlateGamColIndex], 0, oneOverColStd.length);
         ThinPlateDistanceWithKnots distanceMeasure = 
-                new ThinPlateDistanceWithKnots(_knots, _numPred, oneOverColStd, _parms._standardize).doAll(_numKnots, Vec.T_NUM, _predictVec); // Xnmd in 3.1
+                new ThinPlateDistanceWithKnots(_knots, _numPred, oneOverColStd, _parms._standardize_TP_gam_cols).doAll(_numKnots, Vec.T_NUM, _predictVec); // Xnmd in 3.1
         List<Integer[]> polyBasisDegree = findPolyBasis(_numPred, calculatem(_numPred)); // polynomial basis lists in 3.2
         int[][] polyBasisArray = convertList2Array(polyBasisDegree, _M, _numPred);
         copy2DArray(polyBasisArray, _allPolyBasisList[_thinPlateGamColIndex]);
@@ -493,7 +493,7 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
         double[][] zCST = generateOrthogonalComplement(qmat, starT, _numKnotsMM, _parms._seed);
         copy2DArray(zCST, _zTransposeCS[_thinPlateGamColIndex]);
         ThinPlatePolynomialWithKnots thinPlatePoly = new ThinPlatePolynomialWithKnots(_numPred,
-                polyBasisArray, rawColMeans, oneOverColStd, _parms._standardize).doAll(_M, Vec.T_NUM, _predictVec); // generate polynomial basis T as in 3.2
+                polyBasisArray, rawColMeans, oneOverColStd, _parms._standardize_TP_gam_cols).doAll(_M, Vec.T_NUM, _predictVec); // generate polynomial basis T as in 3.2
         Frame thinPlatePolyBasis = thinPlatePoly.outputFrame(null, polyNames, null);
         for (int index = 0; index < _M; index++)
           _gamColMeans[_gamColIndex][index+_numKnots] = thinPlatePolyBasis.vec(index).mean();
@@ -504,9 +504,11 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
         copy2DArray(ztranspose, _zTranspose[_gamColIndex]);
         double[][] penaltyMatCS = ArrayUtils.multArrArr(ArrayUtils.multArrArr(zCST, penaltyMat),
                 ArrayUtils.transpose(zCST));  // transform penalty matrix to transpose(Zcs)*Xnmd*Zcs, 3.3
-        ScaleTPPenalty scaleTPPenaltyCS = new ScaleTPPenalty(penaltyMatCS, thinPlateFrame).doAll(thinPlateFrame);
-        _penaltyScale[_gamColIndex] = scaleTPPenaltyCS._s_scale;
-        penaltyMatCS = scaleTPPenaltyCS._penaltyMat;
+        if (_parms._scale_TP_penalty_mat) { // R does this.
+          ScaleTPPenalty scaleTPPenaltyCS = new ScaleTPPenalty(penaltyMatCS, thinPlateFrame).doAll(thinPlateFrame);
+          _penaltyScale[_gamColIndex] = scaleTPPenaltyCS._s_scale;
+          penaltyMatCS = scaleTPPenaltyCS._penaltyMat;
+        }
         double[][] expandPenaltyCS = expandArray(penaltyMatCS, _numKnots);   // used for penalty matrix
         if (_savePenaltyMat) {  // save intermediate steps for debugging
           copy2DArray(penaltyMat, _penalty_mat[_gamColIndex]);
@@ -680,8 +682,8 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
           scoreGenModelMetrics(model, valid(), false); // score validation dataset and generate model metrics
         }
       } catch(Gram.NonSPDMatrixException exception) {
-        throw new Gram.NonSPDMatrixException("Consider enable lambda_search, \n or not use thin plate regression " +
-                "smoothers at all.");
+        throw new Gram.NonSPDMatrixException("Consider enable lambda_search, decrease scale parameter value for TP " +
+                "smoothers, \nor not use thin plate regression smoothers at all.");
       } finally {
         try {
           final List<Key<Vec>> keep = new ArrayList<>();
